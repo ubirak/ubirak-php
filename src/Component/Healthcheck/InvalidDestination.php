@@ -15,8 +15,8 @@ namespace Ubirak\Component\Healthcheck;
 
 final class InvalidDestination extends \InvalidArgumentException
 {
-    public static function ofProtocol(string $protocol)
+    public static function forUri(string $uri)
     {
-        return new static("Destination must be a valid ${protocol} uri.");
+        return new static("Invalid destination: $uri.");
     }
 }
