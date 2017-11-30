@@ -42,6 +42,20 @@ class HttpHealthcheck extends atoum
         ;
     }
 
+    public function test it requires complete uri()
+    {
+        $this
+            ->given(
+                $httpClient = new \mock\Http\Client\HttpClient(),
+                $this->newTestedInstance($httpClient)
+            )
+            ->exception(function () {
+                $this->testedInstance->isReachable('localhost');
+            })
+            ->hasMessage('Destination must be a valid http uri.')
+        ;
+    }
+
     protected function reachability(): array
     {
         return [
