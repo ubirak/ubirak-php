@@ -30,16 +30,25 @@ final class HttpHealthcheck implements Healthcheck
         $this->logger = $logger ?? new NullLogger();
     }
 
-    public function isReachable(string $target): bool
+    public function isReachable(string $destination): bool
     {
-        $this->logger->info('Start HTTP healthcheck', ['target' => $target]);
+        if (false === filter_var($destination, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED)) {
+            throw InvalidDestination::ofProtocol('http');
+        }
 
-        $response = $this->httpClient->sendRequest(new Request('GET', $target));
+        $this->logger->info('Start HTTP healthcheck', ['destination' => $destination]);
+
+        try {
+            $response = $this->httpClient->sendRequest(new Request('GET', $destination));
+        } catch (\Exception $e) {
+            $this->logger->info('[Fail] HTTP healthcheck', ['destination' => $destination]);
+            return false;
+        }
 
         $result = 200 === $response->getStatusCode();
         $resultAsString = $result ? 'OK' : 'Fail';
 
-        $this->logger->info("[${resultAsString}] HTTP healthcheck", ['target' => $target]);
+        $this->logger->info("[${resultAsString}] HTTP healthcheck", ['destination' => $destination]);
 
         return $result;
     }

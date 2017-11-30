@@ -45,12 +45,13 @@ final class TcpHealthcheck implements Healthcheck
 
     public function isReachable(string $destination): bool
     {
-        $this->logger->info('Start TCP healthcheck', ['target' => $destination]);
-
         if (false === filter_var($destination, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED)) {
             throw InvalidDestination::ofProtocol('tcp');
         }
         ['host' => $host, 'port' => $port] = parse_url($destination);
+        $uri = "tcp://${host}:${port}";
+
+        $this->logger->info('Start TCP healthcheck', ['destination' => $uri]);
 
         $runner = new RetryOperationRunner(
             new CallbackOperationRunner(),
@@ -60,7 +61,6 @@ final class TcpHealthcheck implements Healthcheck
                 $this->step
             )
         );
-        $uri = "tcp://${host}:${port}";
 
         try {
             $runner->run(new Callback(function () use ($uri) {
@@ -71,10 +71,10 @@ final class TcpHealthcheck implements Healthcheck
                 @fclose($socket);
                 return true;
             }));
-            $this->logger->info('[OK] TCP healthcheck', ['target' => $destination]);
+            $this->logger->info('[OK] TCP healthcheck', ['destination' => $destination]);
             return true;
         } catch (\Exception $e) {
-            $this->logger->info('[Fail] TCP healthcheck', ['target' => $destination]);
+            $this->logger->info('[Fail] TCP healthcheck', ['destination' => $destination]);
             return false;
         }
     }
