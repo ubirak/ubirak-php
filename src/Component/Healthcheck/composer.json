@@ -27,7 +27,7 @@
         "psr/log": "^1.0"
     },
     "require-dev": {
-        "atoum/atoum": "^3.0"
+        "atoum/atoum": "^3.1"
     },
     "config": {
         "preferred-install": {
