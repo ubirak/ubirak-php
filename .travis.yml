@@ -1,0 +1,84 @@
+language: php
+
+dist: trusty
+sudo: false
+
+git:
+    depth: 1
+
+addons:
+    apt_packages:
+        - parallel
+
+matrix:
+    include:
+        - php: 7.1.3
+        - php: 7.1
+          env: deps=high
+        - php: 7.2
+    fast_finish: true
+
+before_install:
+    - |
+      # General configuration
+      stty cols 120
+      export COMPOSER_UP='composer update --no-progress --no-suggest --ansi'
+      export ATOUM='vendor/bin/atoum -ulr'
+      nanoseconds() {
+          local cmd="date"
+          local format="+%s%N"
+          local os=$(uname)
+          if hash gdate > /dev/null 2>&1; then
+            cmd="gdate"
+          elif [[ "$os" = Darwin ]]; then
+            format="+%s000000000"
+          fi
+          $cmd -u $format
+      }
+      export -f nanoseconds
+      # tfold is a helper to create folded reports
+      tfold () {
+          local title=$1
+          local fold=$(echo $title | sed -r 's/[^-_A-Za-z0-9]+/./g')
+          shift
+          local id=$(printf %08x $(( RANDOM * RANDOM )))
+          local start=$(nanoseconds)
+          echo -e "travis_fold:start:$fold"
+          echo -e "travis_time:start:$id"
+          echo -e "\\e[1;34m$title\\e[0m"
+          bash -xc "$*" 2>&1
+          local ok=$?
+          local end=$(nanoseconds)
+          echo -e "\\ntravis_time:end:$id:start=$start,finish=$end,duration=$(($end-$start))"
+          (exit $ok) &&
+              echo -e "\\e[32mOK\\e[0m $title\\n\\ntravis_fold:end:$fold" ||
+              echo -e "\\e[41mKO\\e[0m $title\\n"
+          (exit $ok)
+      }
+      export -f tfold
+
+      # php.ini configuration
+      INI=~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+      phpenv config-rm xdebug.ini || echo "xdebug not available"
+      echo date.timezone = Europe/Paris >> $INI
+      echo memory_limit = -1 >> $INI
+      echo session.gc_probability = 0 >> $INI
+      echo opcache.enable_cli = 1 >> $INI
+    - composer global require hirak/prestissimo
+    - COMPONENTS=$(find src -mindepth 3 -maxdepth 3 -type f -name .atoum.php -printf '%h\n')
+
+install:
+    - |
+      run_tests () {
+          set -e
+          if [[ $deps = high ]]; then
+              echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP && $ATOUM'"
+          elif [[ $deps = low ]]; then
+              echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $ATOUM'"
+          else
+              echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP --prefer-stable && $ATOUM'"
+          fi
+      }
+
+script:
+    - (run_tests)
