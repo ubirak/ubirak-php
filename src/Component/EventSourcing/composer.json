@@ -25,4 +25,10 @@
     "require-dev": {
         "atoum/atoum": "^3.1"
     }
+    ,
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        }
+    }
 }
