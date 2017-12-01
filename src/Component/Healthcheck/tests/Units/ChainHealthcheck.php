@@ -18,6 +18,16 @@ use Ubirak\Component\Healthcheck\Destination;
 
 class ChainHealthcheck extends atoum
 {
+    public function test healthchecks should be non empty()
+    {
+        $this
+            ->exception(function () {
+                $this->newTestedInstance([]);
+            })
+            ->hasMessage('ChainHealthcheck requires healthchecks collection to be non empty.')
+        ;
+    }
+
     public function test first failure should stop chain()
     {
         $this

@@ -19,6 +19,9 @@ final class ChainHealthcheck implements Healthcheck
 
     public function __construct(array $healthchecks = [])
     {
+        if (count($healthchecks) === 0) {
+            throw new \InvalidArgumentException('ChainHealthcheck requires healthchecks collection to be non empty.');
+        }
         array_map([$this, 'add'], $healthchecks);
     }
 
