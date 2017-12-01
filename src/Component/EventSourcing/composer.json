@@ -1,0 +1,28 @@
+{
+    "name": "ubirak/event-sourcing",
+    "description": "Stuff to use event sourcing concept",
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Ubirak team",
+            "email": "team@ubirak.org"
+        }
+    ],
+    "require": {
+        "php": "^7.1.3"
+    },
+    "autoload": {
+        "psr-4": { "Ubirak\\Component\\EventSourcing\\": "" },
+        "exclude-from-classmap": ["/Tests/"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ubirak\\Component\\EventSourcing\\Tests\\": "Tests"
+        }
+    },
+    "minimum-stability": "dev",
+    "require-dev": {
+        "atoum/atoum": "^3.1"
+    }
+}
