@@ -14,13 +14,14 @@ declare(strict_types=1);
 namespace Ubirak\Component\Healthcheck\Tests\Units;
 
 use atoum;
+use Ubirak\Component\Healthcheck\Destination;
 
 class HttpHealthcheck extends atoum
 {
     /**
      * @dataProvider reachability
      */
-    public function test reachability(string $destination, int $statusCode, bool $expectedReachability)
+    public function test reachability(string $uri, int $statusCode, bool $expectedReachability)
     {
         $this
             ->given(
@@ -32,27 +33,13 @@ class HttpHealthcheck extends atoum
                 $this->calling($response)->getStatusCode = $statusCode
             )
             ->when(
-                $reachable = $this->testedInstance->isReachable($destination)
+                $reachable = $this->testedInstance->isReachable(new Destination($uri))
             )
             ->then
                 ->boolean($reachable)->isIdenticalTo($expectedReachability)
                 ->mock($logger)->call('info')->twice()
                 ->mock($httpClient)->call('sendRequest')->once()
                 ->mock($response)->call('getStatusCode')->once()
-        ;
-    }
-
-    public function test it requires complete uri()
-    {
-        $this
-            ->given(
-                $httpClient = new \mock\Http\Client\HttpClient(),
-                $this->newTestedInstance($httpClient)
-            )
-            ->exception(function () {
-                $this->testedInstance->isReachable('localhost');
-            })
-            ->hasMessage('Destination must be a valid http uri.')
         ;
     }
 

@@ -43,12 +43,9 @@ final class TcpHealthcheck implements Healthcheck
         $this->logger = $logger ?? new NullLogger();
     }
 
-    public function isReachable(string $destination): bool
+    public function isReachable(Destination $destination): bool
     {
-        if (false === filter_var($destination, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED)) {
-            throw InvalidDestination::ofProtocol('tcp');
-        }
-        ['host' => $host, 'port' => $port] = parse_url($destination);
+        ['host' => $host, 'port' => $port] = $destination->parse();
         $uri = "tcp://${host}:${port}";
 
         $this->logger->info('Start TCP healthcheck', ['destination' => $uri]);
@@ -71,10 +68,10 @@ final class TcpHealthcheck implements Healthcheck
                 @fclose($socket);
                 return true;
             }));
-            $this->logger->info('[OK] TCP healthcheck', ['destination' => $destination]);
+            $this->logger->info('[OK] TCP healthcheck', ['destination' => $uri]);
             return true;
         } catch (\Exception $e) {
-            $this->logger->info('[Fail] TCP healthcheck', ['destination' => $destination]);
+            $this->logger->info('[Fail] TCP healthcheck', ['destination' => $uri]);
             return false;
         }
     }

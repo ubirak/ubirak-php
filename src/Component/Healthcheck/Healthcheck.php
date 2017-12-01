@@ -18,10 +18,9 @@ interface Healthcheck
     /**
      * Informs if a destination is reachable
      *
-     * @param string    $destination  A destination to join for the health check
+     * @param Destination    $destination  A destination to join for the health check
      *
-     * @throws InvalidDestination when the destination is not supported by health check implementation.
      * @throws HealthcheckFailure when a non expected health check failure occurs.
      */
-    public function isReachable(string $destination): bool;
+    public function isReachable(Destination $destination): bool;
 }
