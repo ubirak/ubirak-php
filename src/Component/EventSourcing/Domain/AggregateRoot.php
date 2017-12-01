@@ -25,7 +25,7 @@ abstract class AggregateRoot extends Entity
     {
         $aggregateRoot = new static($history->getAggregateId(), $history->getVersionId());
 
-        foreach ($history as $change) {
+        foreach ($history->read() as $change) {
             $aggregateRoot->apply($change);
         }
 
@@ -44,7 +44,7 @@ abstract class AggregateRoot extends Entity
             );
         }
 
-        return new AggregateHistory($this->popChanges(), $this->versionId);
+        return new AggregateHistory(new \ArrayIterator($this->popChanges()), $this->versionId);
     }
 
     protected function apply(Change $change): void

@@ -33,10 +33,11 @@ class AggregateRoot extends atoum
     {
         $this
             ->given(
+                $past = [
+                    new ProductWasAdded($this->mockIdentifiesAggregate('12334'), 'product1'),
+                ],
                 $sut = Basket::reconstituteFromHistory(
-                    \Ubirak\Component\EventSourcing\Domain\AggregateHistory::fromEvents([
-                        new ProductWasAdded($this->mockIdentifiesAggregate('12334'), 'product1'),
-                    ])
+                    \Ubirak\Component\EventSourcing\Domain\AggregateHistory::fromEvents(new \ArrayIterator($past))
                 )
             )
             ->when(
@@ -53,9 +54,9 @@ class AggregateRoot extends atoum
         $this
             ->given(
                 $sut = BasketV2::reconstituteFromHistory(
-                    \Ubirak\Component\EventSourcing\Domain\AggregateHistory::fromEvents([
+                    \Ubirak\Component\EventSourcing\Domain\AggregateHistory::fromEvents(new \ArrayIterator([
                         new ProductWasAdded($this->mockIdentifiesAggregate('12334'), 'product1', 'p12345'),
-                    ])
+                    ]))
                 )
             )
             ->when(
