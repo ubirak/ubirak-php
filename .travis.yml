@@ -7,8 +7,13 @@ git:
     depth: 1
 
 addons:
-    apt_packages:
-        - parallel
+    apt:
+        sources:
+            - sourceline: 'ppa:ondrej/php'
+        packages:
+            - parallel
+            - librabbitmq4
+            - librabbitmq-dev
 
 matrix:
     include:
@@ -65,6 +70,9 @@ before_install:
       echo memory_limit = -1 >> $INI
       echo session.gc_probability = 0 >> $INI
       echo opcache.enable_cli = 1 >> $INI
+    - |
+      # Install extra PHP extensions
+      tfold ext.amqp1 'printf "\n" | pecl install amqp-1.9.1'
     - composer global require hirak/prestissimo
     - COMPONENTS=$(find src -mindepth 3 -maxdepth 3 -type f -name .atoum.php -printf '%h\n')
 
