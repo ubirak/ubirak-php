@@ -1,5 +1,5 @@
 {
-    "name": "ubirak/healthcheck",
+    "name": "ubirak/event-bus",
     "description": "Event bus provides an abstraction layer for messsage based inter-service communication",
     "type": "library",
     "license": "Apache-2.0",
