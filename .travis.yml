@@ -30,6 +30,8 @@ before_install:
       stty cols 120
       export COMPOSER_UP='composer update --no-progress --no-suggest --ansi'
       export ATOUM='vendor/bin/atoum -ulr'
+      [ -d ~/.composer ] || mkdir ~/.composer
+      cp .composer/* ~/.composer/
       nanoseconds() {
           local cmd="date"
           local format="+%s%N"
@@ -81,11 +83,11 @@ install:
       run_tests () {
           set -e
           if [[ $deps = high ]]; then
-              echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP && $ATOUM'"
+              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP && $ATOUM'"
           elif [[ $deps = low ]]; then
-              echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $ATOUM'"
+              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $ATOUM'"
           else
-              echo "$COMPONENTS" | parallel --gnu -j10% "tfold {} 'cd {} && $COMPOSER_UP --prefer-stable && $ATOUM'"
+              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP --prefer-stable && $ATOUM'"
           fi
       }
 
