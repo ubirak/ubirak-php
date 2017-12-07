@@ -35,6 +35,7 @@
         }
     },
     "scripts": {
+        "deploy": "",
         "test": "atoum -force-terminal -ulr"
     }
 }

@@ -6,6 +6,9 @@ sudo: false
 git:
     depth: 1
 
+services:
+    - docker
+
 addons:
     apt:
         sources:
@@ -29,7 +32,7 @@ before_install:
       # General configuration
       stty cols 120
       export COMPOSER_UP='composer update --no-progress --no-suggest --ansi'
-      export RUN_TEST='composer test'
+      export RUN_TEST='composer deploy && composer test'
       [ -d ~/.composer ] || mkdir ~/.composer
       cp .composer/* ~/.composer/
       nanoseconds() {

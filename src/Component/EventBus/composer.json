@@ -15,16 +15,30 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Ubirak\\Component\\EventBus\\Tests\\": "Tests"
-        }
+            "Ubirak\\Component\\EventBus\\Tests\\Units\\": "Tests/Units",
+            "Ubirak\\Component\\EventBus\\Tests\\": "Tests/testapp/src"
+        },
+        "files": ["Tests/testapp/AppKernel.php"]
     },
     "minimum-stability": "dev",
     "require": {
         "php": "^7.1.3",
-        "symfony/serializer": "^2.8|^3.4|^4.0"
+        "symfony/serializer": "^2.8|^3.4|^4.0",
+        "symfony/console": "^2.8|^3.4|^4.0",
+        "psr/container": "^1.0"
     },
     "require-dev": {
-        "atoum/atoum": "^3.1"
+        "atoum/atoum": "^3.1",
+        "behat/behat": "^3.4",
+        "behat/symfony2-extension": "^2.1",
+        "tolerance/tolerance": "^0.4.2",
+        "php-http/curl-client": "^1.7",
+        "symfony/framework-bundle": "^3.4|^4.0",
+        "php-http/client-common": "^1.7",
+        "ubirak/rest-api-behat-extension": "^7.0",
+        "ubirak/moco-behat-extension": "^2.0",
+        "guzzlehttp/psr7": "^1.4",
+        "fzaninotto/faker": "^1.8"
     },
     "config": {
         "preferred-install": {
@@ -32,6 +46,7 @@
         }
     },
     "scripts": {
-        "test": "atoum -force-terminal -ulr",
+        "deploy": "docker-compose run --rm php_lib && docker-compose up -d demo_listener && docker-compose scale demo_listener=4",
+        "test": "atoum -force-terminal -ulr && docker-compose run --rm test-runner"
     }
 }

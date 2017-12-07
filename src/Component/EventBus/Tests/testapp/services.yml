@@ -1,0 +1,102 @@
+services:
+    _defaults: { autowire: true, autoconfigure: true, public: false }
+
+    Ubirak\Component\EventBus\Infra\AMQPEventBusPublisher:
+        public: true
+        arguments:
+            $exchangeName: 'test-app'
+
+    Ubirak\Component\EventBus\Ui\Cli\EventBusListenerCli:
+        arguments:
+            $container: '@eventlistener_locator.ubirak'
+
+    eventlistener_locator.ubirak:
+        class: Symfony\Component\DependencyInjection\ServiceLocator
+        tags: ['container.service_locator']
+        arguments:
+            -
+                'Ubirak\Component\EventBus\Tests\DemoHandler': '@demo_handler.listener'
+
+    Ubirak\Component\EventBus\Infra\AMQPWrapper:
+        arguments:
+            - host: '%env(EVENTBUS_HOSTNAME)%'
+            - port: 5672
+            - login: '%env(EVENTBUS_USERNAME)%'
+            - password: '%env(EVENTBUS_PASSWORD)%'
+
+    demo_handler.listener:
+        class: Ubirak\Component\EventBus\Domain\EventListener
+        arguments:
+            - !service
+                class: Ubirak\Component\EventBus\Infra\AMQPEventBusConsumer
+                arguments:
+                    - '@Ubirak\Component\EventBus\Infra\AMQPWrapper'
+                    - 'test-app'
+                    - 'demo-listener'
+                    - '@Symfony\Component\Serializer\Serializer'
+            - !service
+                class: Ubirak\Component\EventBus\Tests\DemoHandler
+                arguments:
+                    - '@Http\Client\HttpClient'
+            - !service
+                class: Ubirak\Component\EventBus\Domain\ExceptionHandler
+                arguments:
+                    - []
+
+    Http\Client\Curl\Client:
+        shared: false
+        arguments:
+            - !service
+                class: Http\Message\MessageFactory\GuzzleMessageFactory
+            - !service
+                class: Http\Message\StreamFactory\GuzzleStreamFactory
+
+    Http\Client\Common\PluginClient:
+        shared: false
+        arguments:
+            - '@Http\Client\Curl\Client'
+            -
+                - '@Tolerance\Bridge\PhpHttp\RetryPlugin'
+
+    Tolerance\Bridge\PhpHttp\RetryPlugin:
+        shared: false
+        arguments:
+            - !service
+                class: Tolerance\Waiter\ExponentialBackOff
+                arguments:
+                    - !service
+                        class: Tolerance\Waiter\TimeOut
+                        arguments:
+                            - !service
+                                class: Tolerance\Waiter\SleepWaiter
+                            - 10
+                    - 0.5
+                    - 0.5
+            - !service
+                class: Tolerance\Bridge\PhpHttp\StatusCodeVoter
+                arguments:
+                    -
+                        - 502
+                        - 500
+                        - 401
+
+    Http\Client\HttpClient: '@Http\Client\Common\PluginClient'
+
+    Symfony\Component\Serializer\Serializer:
+        arguments:
+            -
+                - !service
+                    class: Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer
+                - !service
+                    class: Symfony\Component\Serializer\Normalizer\PropertyNormalizer
+                    arguments:
+                        - null
+                        - !service
+                            class: Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
+                - !service
+                    class: Symfony\Component\Serializer\Normalizer\ArrayDenormalizer
+            -
+                - !service
+                    class: Symfony\Component\Serializer\Encoder\JsonEncoder
+
+    Symfony\Component\Serializer\SerializerInterface: '@Symfony\Component\Serializer\Serializer'

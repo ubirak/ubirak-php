@@ -1,0 +1,22 @@
+default:
+    suites:
+        default:
+            contexts:
+                - Ubirak\RestApiBehatExtension\Json\JsonContext
+                - Ubirak\MocoBehatExtension\MocoContext
+                - FeatureContext:
+                    eventBusPublisher: '@Ubirak\Component\EventBus\Infra\AMQPEventBusPublisher'
+
+    extensions:
+        Ubirak\RestApiBehatExtension\Extension:
+            rest:
+                base_url: http://third-party.localtest/
+                store_response: true
+        Ubirak\MocoBehatExtension\MocoExtension:
+            json_file: /var/moco/moco.json
+            hostname: third-party.localtest
+            port: 8000
+        Behat\Symfony2Extension:
+            kernel:
+                path: Tests/testapp/AppKernel.php
+                bootstrap: vendor/autoload.php
