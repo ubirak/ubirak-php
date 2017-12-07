@@ -26,6 +26,9 @@ matrix:
 
 before_install:
     - |
+      docker -v
+      docker-compose -v
+      travis_terminate 1
       # General configuration
       stty cols 120
       export COMPOSER_UP='composer update --no-progress --no-suggest --ansi'
