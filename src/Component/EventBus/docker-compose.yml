@@ -1,0 +1,87 @@
+version: '2'
+
+services:
+    php_lib:
+        build:
+            context: .
+            args:
+                COMPOSER_AUTH: "$COMPOSER_AUTH"
+
+    test-runner:
+        image: eventbus_php_lib
+        environment:
+            - SYMFONY_DEBUG=1
+            - SYMFONY_ENV=test
+            - EVENTBUS_HOSTNAME=rabbitmq.mom.events.localtest
+            - EVENTBUS_USERNAME=guest
+            - EVENTBUS_PASSWORD=guest
+        command: behat --strict --colors
+        volumes:
+            - mock_fixtures:/var/moco:rw
+        networks:
+            - messaging
+            - api
+
+    event_bus_rmq:
+        image: rabbitmq:3.6.6-alpine
+        networks:
+            messaging:
+                aliases:
+                    - rabbitmq.mom.events.localtest
+
+    demo_listener:
+        image: eventbus_php_lib
+        environment:
+           - EVENTBUS_HOSTNAME=rabbitmq.mom.events.localtest
+           - EVENTBUS_USERNAME=guest
+           - EVENTBUS_PASSWORD=guest
+        command: Tests/testapp/console eventbus:listen -vvv 'Ubirak\Component\EventBus\Tests\DemoHandler'
+        restart: always
+        networks:
+            - api
+            - messaging
+        depends_on:
+            - event_bus_rmq
+            - third_party_mock
+
+    third_party_mock:
+        image: ubirak/moco
+        networks:
+            api:
+                aliases:
+                    - third-party.localtest
+        volumes:
+            - mock_fixtures:/var/moco:ro
+        depends_on:
+            - ack_mock
+
+    ack_mock:
+        image: crccheck/requestbin
+        environment:
+            REALM: prod
+            REDIS_URL: "redis://ack_storage:6379"
+        depends_on:
+            - ack_storage
+        ports:
+            - "8000:8000"
+        networks:
+            api:
+                aliases:
+                    - requestb.localtest
+
+    ack_storage:
+        image: redis:alpine
+        networks:
+            api:
+                aliases:
+                    - ack_storage.localtest
+
+networks:
+    api:
+        driver: bridge
+    messaging:
+        driver: bridge
+
+volumes:
+    mock_fixtures:
+        driver: local

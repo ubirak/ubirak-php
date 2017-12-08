@@ -33,5 +33,9 @@
         "preferred-install": {
             "*": "dist"
         }
+    },
+    "scripts": {
+        "deploy": "",
+        "test": "atoum -force-terminal -ulr"
     }
 }

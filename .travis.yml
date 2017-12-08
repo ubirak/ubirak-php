@@ -6,6 +6,9 @@ sudo: false
 git:
     depth: 1
 
+services:
+    - docker
+
 addons:
     apt:
         sources:
@@ -29,7 +32,7 @@ before_install:
       # General configuration
       stty cols 120
       export COMPOSER_UP='composer update --no-progress --no-suggest --ansi'
-      export ATOUM='vendor/bin/atoum -ulr'
+      export RUN_TEST='composer deploy && composer test'
       [ -d ~/.composer ] || mkdir ~/.composer
       cp .composer/* ~/.composer/
       nanoseconds() {
@@ -82,11 +85,11 @@ install:
       run_tests () {
           set -e
           if [[ $deps = high ]]; then
-              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP && $ATOUM'"
+              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP && $RUN_TEST'"
           elif [[ $deps = low ]]; then
-              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $ATOUM'"
+              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP --prefer-lowest --prefer-stable && $RUN_TEST'"
           else
-              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP --prefer-stable && $ATOUM'"
+              echo "$COMPONENTS" | parallel --gnu -j5% "tfold {} 'cd {} && $COMPOSER_UP --prefer-stable && $RUN_TEST'"
           fi
       }
 
