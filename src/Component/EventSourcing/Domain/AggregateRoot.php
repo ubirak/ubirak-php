@@ -23,16 +23,20 @@ abstract class AggregateRoot extends Entity
 
     public static function reconstituteFromHistory(AggregateHistory $history): self
     {
-        $aggregateRoot = new static($history->getAggregateId(), $history->getVersionId());
+        $aggregateRoot = new static($history->getAggregateId());
 
-        foreach ($history->read() as $change) {
-            $aggregateRoot->apply($change);
+        foreach ($history as $change) {
+            if (false === $history->getAggregateId()->equals($change->getAggregateId())) {
+                throw CorruptedAggregateHistory::byEventNotMatchingAggregateId($history->getAggregateId(), $change->getDomainEvent());
+            }
+            $aggregateRoot->apply($change->getDomainEvent());
+            $aggregateRoot->versionId = $change->getVersionId();
         }
 
         return $aggregateRoot;
     }
 
-    public function popHistory(): AggregateHistory
+    public function popChanges(): AggregateChanges
     {
         // For now we pop entities history not in realtime.
         // An event recorded in entity will always be saved after all aggregate ones
@@ -40,11 +44,11 @@ abstract class AggregateRoot extends Entity
         foreach ($this->getChildEntities() as $entity) {
             $this->recordedChanges = array_merge(
                 $this->recordedChanges,
-                $entity->popChanges()
+                $entity->_popChanges()
             );
         }
 
-        return new AggregateHistory(new \ArrayIterator($this->popChanges()), $this->versionId);
+        return new AggregateChanges($this->_popChanges(), $this->versionId);
     }
 
     protected function apply(Change $change): void
