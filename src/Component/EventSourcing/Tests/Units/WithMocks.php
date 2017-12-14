@@ -5,6 +5,14 @@ namespace Ubirak\Component\EventSourcing\Tests\Units;
 
 trait WithMocks
 {
+    private function versionedEventAtVersion($aggregateId, $versionId)
+    {
+        return new \Ubirak\Component\EventSourcing\Domain\VersionedDomainEvent(
+            $this->mockEventOnAggregateId($aggregateId),
+            $versionId
+        );
+    }
+
     private function mockEventOnAggregateId($aggregateId)
     {
         $event = new \mock\Ubirak\Component\EventSourcing\Domain\DomainEvent();

@@ -22,7 +22,7 @@ abstract class ChangesRecorder
         }
     }
 
-    protected function popChanges(): iterable
+    protected function _popChanges(): array
     {
         $changes = $this->recordedChanges;
         $this->recordedChanges = [];
