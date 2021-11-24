@@ -26,7 +26,11 @@ final class Destination
      */
     public function __construct(string $uri)
     {
-        $this->uri = filter_var($uri, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED);
+        if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
+            $this->uri = filter_var($uri, FILTER_VALIDATE_URL);
+        } else {
+            $this->uri = filter_var($uri, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED);
+        }
 
         if ($this->uri === false) {
             throw InvalidDestination::forUri($uri);
